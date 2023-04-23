@@ -1,22 +1,25 @@
 <template>
-    <div class="flex p-3">
-        <OptionFilter 
-            v-for="i in [3,4,5]" 
-            v-bind:key="i" 
-            v-bind:star="i"
-            v-on:filterOptions="filterOptions(i)"
-        />
+    <div class="flex flex-col items-center">
+        <div class="flex p-3">
+            <OptionFilter 
+                v-for="i in [3,4,5]" 
+                v-bind:key="i" 
+                v-bind:star="i"
+                v-bind:isActive="currentOptionFilter === i"
+                v-on:filterOptions="filterOptions(i)"
+            />
+        </div>
+        <div class="flex flex-wrap">
+            <PokemonOption 
+                v-for="option in pokemonOptions" 
+                v-bind:key="option" 
+                v-bind:isActive="selection.includes(option)"
+                v-bind:pokemon="option"
+                v-on:handleClick="handlePokemonOptionClick(option)"
+            />
+        </div>
     </div>
-    <div class="flex flex-wrap">
-        <PokemonOption 
-            v-for="option in pokemonOptions" 
-            v-bind:key="option" 
-            v-bind:isActive="selection.includes(option)"
-            v-bind:pokemon="option"
-            v-on:handleClick="handlePokemonOptionClick(option)"
-        />
-    </div>
-    <div class="flex w-full overflow-x-auto whitespace-nowrap my-3 text-sm">
+    <div class="flex lg:justify-center w-full overflow-x-auto whitespace-nowrap my-3 text-sm mx-auto">
         <div 
             v-for="item in pokemon" 
             v-bind:key="item[0]" 
@@ -26,8 +29,8 @@
                 <div class="mr-3">{{ item[0] }}</div>
                 <div class="rounded-full bg-yellow-100 px-2">{{ getSelectionCount(item[0]) }}</div>
             </div>
-            <div class="flex flex-col">
-                <div class="p-2 border border-gray-100 flex flex-wrap items-center justify-center" 
+            <div class="flex flex-col border border-gray-100">
+                <div class="p-2 [:not(:last-child)]:border-r border-b border-gray-100 flex flex-wrap items-center justify-center" 
                 v-bind:class="{ 'bg-yellow-100': selection.includes(option) }"
                 v-for="(option, index) in item[1]"
                 v-bind:key="`${option}-${index}`"
@@ -46,7 +49,8 @@ import OptionFilter from '../components/OptionFilter.vue';
 const pokemon: Ref<Map<string, object>> = ref(new Map());
 const allPokemon = ref<string[]>([]);
 const pokemonOptions = ref<string[]>();
-fetch('../src/assets/rush1.json')
+const currentOptionFilter = ref(3);
+fetch('rush1.json')
     .then(res => res.json())
     .then(data => {
         Object.entries(data).forEach(([key, value]) => {
@@ -59,6 +63,7 @@ fetch('../src/assets/rush1.json')
 
 const filterOptions = (stars: number) => {
     pokemonOptions.value = [...new Set(allPokemon.value.filter((x: string) => x.includes(`${stars}★`)))].sort();
+    currentOptionFilter.value = stars;
 }
 
 const selection = ref<string[]>([]);
